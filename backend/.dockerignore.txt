@@ -1,0 +1,58 @@
+# ============================================================
+# .dockerignore — 不要 COPY 進 image 的檔案
+#
+# 作用：
+#   1. 縮小 image 體積（不要把 .venv、__pycache__、tests 帶進去）
+#   2. 加速 build（不複製不必要的檔案）
+#   3. 安全（避免 .env 等含密碼檔案被打包進 image）
+# ============================================================
+
+# Python 編譯產物
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+
+# 虛擬環境（容器內會獨立 pip install，不需要）
+.venv/
+venv/
+env/
+
+# 測試與快取
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+tests/
+
+# IDE 設定
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 開發環境檔案 — 不要把 .env 打包進 image
+# 環境變數透過 docker-compose 注入
+.env
+.env.local
+*.env
+
+# Git
+.git/
+.gitignore
+
+# Docker 自己
+Dockerfile
+.dockerignore
+
+# 文件（部署不需要）
+*.md
+README*
+docs/
+
+# 雜項
+*.log
+.DS_Store
+Thumbs.db

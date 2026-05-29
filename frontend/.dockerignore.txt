@@ -1,0 +1,53 @@
+# ============================================================
+# .dockerignore — 前端 Docker build 時不要複製進來的檔案
+#
+# ⚠️ 最重要的一條：node_modules
+# 為什麼？因為它可能 200-500MB，COPY 進去會：
+#   1. 大幅拖慢 build（複製幾十萬個小檔案很慢）
+#   2. 浪費 image 體積（builder 階段會自己 npm ci 重裝）
+#   3. 平台不相容（你 Windows 裝的不一定能在 Linux 容器跑）
+# ============================================================
+
+# Node 相關
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Vite build 產物（容器內會自己 build）
+dist/
+dist-ssr/
+.vite/
+
+# 環境變數（前端的 .env 通常含 VITE_ 開頭的設定，不該被 hardcode）
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# Docker 自己
+Dockerfile
+.dockerignore
+nginx.conf
+
+# 文件
+*.md
+README*
+
+# 測試與覆蓋率
+coverage/
+.nyc_output/
+
+# 雜項
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,879 @@
+{
+  "sample": {
+    "input": {
+      "cargo": [
+        {
+          "id": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "quantity": 4,
+          "stackable": true
+        },
+        {
+          "id": "A002",
+          "type": "heavy",
+          "L": 1500,
+          "W": 1200,
+          "H": 900,
+          "weight": 1200,
+          "quantity": 3,
+          "stackable": true
+        },
+        {
+          "id": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "quantity": 5,
+          "stackable": false
+        },
+        {
+          "id": "V001",
+          "type": "vip",
+          "L": 1400,
+          "W": 1100,
+          "H": 1000,
+          "weight": 600,
+          "quantity": 2,
+          "stackable": true
+        },
+        {
+          "id": "N001",
+          "type": "normal",
+          "L": 1000,
+          "W": 800,
+          "H": 700,
+          "weight": 250,
+          "quantity": 8,
+          "stackable": true
+        }
+      ],
+      "container": "40",
+      "forklift": "E35SH"
+    },
+    "output": {
+      "packed": [
+        {
+          "id": "V001-1",
+          "baseId": "V001",
+          "type": "vip",
+          "L": 1400,
+          "W": 1100,
+          "H": 1000,
+          "weight": 600,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "V001-2",
+          "baseId": "V001",
+          "type": "vip",
+          "L": 1400,
+          "W": 1100,
+          "H": 1000,
+          "weight": 600,
+          "stackable": true,
+          "x": 0,
+          "y": 1100,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "A002-1",
+          "baseId": "A002",
+          "type": "heavy",
+          "L": 1500,
+          "W": 1200,
+          "H": 900,
+          "weight": 1200,
+          "stackable": true,
+          "x": 1400,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "A002-2",
+          "baseId": "A002",
+          "type": "heavy",
+          "L": 1500,
+          "W": 1200,
+          "H": 900,
+          "weight": 1200,
+          "stackable": true,
+          "x": 1400,
+          "y": 0,
+          "z": 900,
+          "rotated": false
+        },
+        {
+          "id": "A002-3",
+          "baseId": "A002",
+          "type": "heavy",
+          "L": 1500,
+          "W": 1200,
+          "H": 900,
+          "weight": 1200,
+          "stackable": true,
+          "x": 2900,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "A001-1",
+          "baseId": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "stackable": true,
+          "x": 1400,
+          "y": 1200,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "A001-2",
+          "baseId": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "stackable": true,
+          "x": 1400,
+          "y": 1200,
+          "z": 800,
+          "rotated": false
+        },
+        {
+          "id": "A001-3",
+          "baseId": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "stackable": true,
+          "x": 2600,
+          "y": 1200,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "A001-4",
+          "baseId": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "stackable": true,
+          "x": 2600,
+          "y": 1200,
+          "z": 800,
+          "rotated": false
+        },
+        {
+          "id": "N001-1",
+          "baseId": "N001",
+          "type": "normal",
+          "L": 1000,
+          "W": 800,
+          "H": 700,
+          "weight": 250,
+          "stackable": true,
+          "x": 1400,
+          "y": 1200,
+          "z": 1600,
+          "rotated": false
+        },
+        {
+          "id": "N001-2",
+          "baseId": "N001",
+          "type": "normal",
+          "L": 1000,
+          "W": 800,
+          "H": 700,
+          "weight": 250,
+          "stackable": true,
+          "x": 2400,
+          "y": 1200,
+          "z": 1600,
+          "rotated": false
+        },
+        {
+          "id": "N001-3",
+          "baseId": "N001",
+          "type": "normal",
+          "L": 1000,
+          "W": 800,
+          "H": 700,
+          "weight": 250,
+          "stackable": true,
+          "x": 2900,
+          "y": 0,
+          "z": 900,
+          "rotated": false
+        },
+        {
+          "id": "N001-4",
+          "baseId": "N001",
+          "type": "normal",
+          "L": 1000,
+          "W": 800,
+          "H": 700,
+          "weight": 250,
+          "stackable": true,
+          "x": 2900,
+          "y": 0,
+          "z": 1600,
+          "rotated": false
+        },
+        {
+          "id": "N001-5",
+          "baseId": "N001",
+          "type": "normal",
+          "L": 1000,
+          "W": 800,
+          "H": 700,
+          "weight": 250,
+          "stackable": true,
+          "x": 3800,
+          "y": 1200,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "N001-6",
+          "baseId": "N001",
+          "type": "normal",
+          "L": 1000,
+          "W": 800,
+          "H": 700,
+          "weight": 250,
+          "stackable": true,
+          "x": 3800,
+          "y": 1200,
+          "z": 700,
+          "rotated": false
+        },
+        {
+          "id": "N001-7",
+          "baseId": "N001",
+          "type": "normal",
+          "L": 1000,
+          "W": 800,
+          "H": 700,
+          "weight": 250,
+          "stackable": true,
+          "x": 3800,
+          "y": 1200,
+          "z": 1400,
+          "rotated": false
+        },
+        {
+          "id": "N001-8",
+          "baseId": "N001",
+          "type": "normal",
+          "L": 1000,
+          "W": 800,
+          "H": 700,
+          "weight": 250,
+          "stackable": true,
+          "x": 4400,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "B001-1",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 4400,
+          "y": 0,
+          "z": 700,
+          "rotated": false
+        },
+        {
+          "id": "B001-2",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 4800,
+          "y": 1200,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "B001-3",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 5400,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "B001-4",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 5800,
+          "y": 1200,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "B001-5",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 6400,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        }
+      ],
+      "unpacked": [],
+      "utilization": 27.554580282735923
+    }
+  },
+  "single": {
+    "input": {
+      "cargo": [
+        {
+          "id": "X",
+          "type": "normal",
+          "L": 1000,
+          "W": 1000,
+          "H": 1000,
+          "weight": 500,
+          "quantity": 1,
+          "stackable": true
+        }
+      ],
+      "container": "20",
+      "forklift": "E25"
+    },
+    "output": {
+      "packed": [
+        {
+          "id": "X-1",
+          "baseId": "X",
+          "type": "normal",
+          "L": 1000,
+          "W": 1000,
+          "H": 1000,
+          "weight": 500,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        }
+      ],
+      "unpacked": [],
+      "utilization": 3.0124178737890204
+    }
+  },
+  "stacked": {
+    "input": {
+      "cargo": [
+        {
+          "id": "BIG",
+          "type": "heavy",
+          "L": 1500,
+          "W": 1500,
+          "H": 800,
+          "weight": 2000,
+          "quantity": 1,
+          "stackable": true
+        },
+        {
+          "id": "SML",
+          "type": "normal",
+          "L": 1500,
+          "W": 1500,
+          "H": 600,
+          "weight": 200,
+          "quantity": 1,
+          "stackable": true
+        }
+      ],
+      "container": "20",
+      "forklift": "E25"
+    },
+    "output": {
+      "packed": [
+        {
+          "id": "BIG-1",
+          "baseId": "BIG",
+          "type": "heavy",
+          "L": 1500,
+          "W": 1500,
+          "H": 800,
+          "weight": 2000,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "SML-1",
+          "baseId": "SML",
+          "type": "normal",
+          "L": 1500,
+          "W": 1500,
+          "H": 600,
+          "weight": 200,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 800,
+          "rotated": false
+        }
+      ],
+      "unpacked": [],
+      "utilization": 9.489116302435415
+    }
+  },
+  "too_big": {
+    "input": {
+      "cargo": [
+        {
+          "id": "HUGE",
+          "type": "normal",
+          "L": 9999,
+          "W": 2000,
+          "H": 2000,
+          "weight": 1000,
+          "quantity": 1,
+          "stackable": true
+        }
+      ],
+      "container": "20",
+      "forklift": "E35SH"
+    },
+    "output": {
+      "packed": [],
+      "unpacked": [
+        {
+          "id": "HUGE-1",
+          "baseId": "HUGE",
+          "type": "normal"
+        }
+      ],
+      "utilization": 0
+    }
+  },
+  "smaller_forklift": {
+    "input": {
+      "cargo": [
+        {
+          "id": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "quantity": 4,
+          "stackable": true
+        },
+        {
+          "id": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "quantity": 5,
+          "stackable": false
+        }
+      ],
+      "container": "40",
+      "forklift": "E25"
+    },
+    "output": {
+      "packed": [
+        {
+          "id": "A001-1",
+          "baseId": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "A001-2",
+          "baseId": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "stackable": true,
+          "x": 0,
+          "y": 1000,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "A001-3",
+          "baseId": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 800,
+          "rotated": false
+        },
+        {
+          "id": "A001-4",
+          "baseId": "A001",
+          "type": "heavy",
+          "L": 1200,
+          "W": 1000,
+          "H": 800,
+          "weight": 800,
+          "stackable": true,
+          "x": 0,
+          "y": 1000,
+          "z": 800,
+          "rotated": false
+        },
+        {
+          "id": "B001-1",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 0,
+          "y": 0,
+          "z": 1600,
+          "rotated": false
+        },
+        {
+          "id": "B001-2",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 0,
+          "y": 800,
+          "z": 1600,
+          "rotated": false
+        },
+        {
+          "id": "B001-3",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 1200,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "B001-4",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 1200,
+          "y": 800,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "B001-5",
+          "baseId": "B001",
+          "type": "fragile",
+          "L": 1000,
+          "W": 800,
+          "H": 600,
+          "weight": 150,
+          "stackable": false,
+          "x": 2200,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        }
+      ],
+      "unpacked": [],
+      "utilization": 9.214393406445453
+    }
+  },
+  "fork_reach": {
+    "input": {
+      "cargo": [
+        {
+          "id": "PALLET",
+          "type": "normal",
+          "L": 1100,
+          "W": 1100,
+          "H": 800,
+          "weight": 200,
+          "quantity": 6,
+          "stackable": true
+        }
+      ],
+      "container": "40",
+      "forklift": "E35SH"
+    },
+    "output": {
+      "packed": [
+        {
+          "id": "PALLET-1",
+          "baseId": "PALLET",
+          "type": "normal",
+          "L": 1100,
+          "W": 1100,
+          "H": 800,
+          "weight": 200,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "PALLET-2",
+          "baseId": "PALLET",
+          "type": "normal",
+          "L": 1100,
+          "W": 1100,
+          "H": 800,
+          "weight": 200,
+          "stackable": true,
+          "x": 0,
+          "y": 1100,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "PALLET-3",
+          "baseId": "PALLET",
+          "type": "normal",
+          "L": 1100,
+          "W": 1100,
+          "H": 800,
+          "weight": 200,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 800,
+          "rotated": false
+        },
+        {
+          "id": "PALLET-4",
+          "baseId": "PALLET",
+          "type": "normal",
+          "L": 1100,
+          "W": 1100,
+          "H": 800,
+          "weight": 200,
+          "stackable": true,
+          "x": 0,
+          "y": 1100,
+          "z": 800,
+          "rotated": false
+        },
+        {
+          "id": "PALLET-5",
+          "baseId": "PALLET",
+          "type": "normal",
+          "L": 1100,
+          "W": 1100,
+          "H": 800,
+          "weight": 200,
+          "stackable": true,
+          "x": 1100,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "PALLET-6",
+          "baseId": "PALLET",
+          "type": "normal",
+          "L": 1100,
+          "W": 1100,
+          "H": 800,
+          "weight": 200,
+          "stackable": true,
+          "x": 1100,
+          "y": 1100,
+          "z": 0,
+          "rotated": false
+        }
+      ],
+      "unpacked": [],
+      "utilization": 8.576473862922306
+    }
+  },
+  "rotation": {
+    "input": {
+      "cargo": [
+        {
+          "id": "LONG",
+          "type": "normal",
+          "L": 2000,
+          "W": 1300,
+          "H": 1000,
+          "weight": 100,
+          "quantity": 6,
+          "stackable": true
+        }
+      ],
+      "container": "20",
+      "forklift": "E25"
+    },
+    "output": {
+      "packed": [
+        {
+          "id": "LONG-1",
+          "baseId": "LONG",
+          "type": "normal",
+          "L": 2000,
+          "W": 1300,
+          "H": 1000,
+          "weight": 100,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "LONG-2",
+          "baseId": "LONG",
+          "type": "normal",
+          "L": 2000,
+          "W": 1300,
+          "H": 1000,
+          "weight": 100,
+          "stackable": true,
+          "x": 0,
+          "y": 0,
+          "z": 1000,
+          "rotated": false
+        },
+        {
+          "id": "LONG-3",
+          "baseId": "LONG",
+          "type": "normal",
+          "L": 2000,
+          "W": 1300,
+          "H": 1000,
+          "weight": 100,
+          "stackable": true,
+          "x": 2000,
+          "y": 0,
+          "z": 0,
+          "rotated": false
+        },
+        {
+          "id": "LONG-4",
+          "baseId": "LONG",
+          "type": "normal",
+          "L": 2000,
+          "W": 1300,
+          "H": 1000,
+          "weight": 100,
+          "stackable": true,
+          "x": 2000,
+          "y": 0,
+          "z": 1000,
+          "rotated": false
+        },
+        {
+          "id": "LONG-5",
+          "baseId": "LONG",
+          "type": "normal",
+          "L": 1300,
+          "W": 2000,
+          "H": 1000,
+          "weight": 100,
+          "stackable": true,
+          "x": 4000,
+          "y": 0,
+          "z": 0,
+          "rotated": true
+        },
+        {
+          "id": "LONG-6",
+          "baseId": "LONG",
+          "type": "normal",
+          "L": 1300,
+          "W": 2000,
+          "H": 1000,
+          "weight": 100,
+          "stackable": true,
+          "x": 4000,
+          "y": 0,
+          "z": 1000,
+          "rotated": true
+        }
+      ],
+      "unpacked": [],
+      "utilization": 46.993718831108716
+    }
+  }
+}

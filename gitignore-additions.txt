@@ -1,0 +1,32 @@
+# ============================================================
+# .gitignore 追加項目 (合併到專案根目錄的 .gitignore)
+#
+# 如果你的專案還沒有 .gitignore,直接拿這個當基底
+# 如果有了,把下面的內容加到既有 .gitignore 後面
+# ============================================================
+
+# Docker 部署設定
+.env.docker
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# 環境變數
+.env
+.env.local
+
+# 系統
+.DS_Store
+Thumbs.db

@@ -1,0 +1,44 @@
+# ====== Python ======
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# ====== Node / 前端 ======
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# ====== 環境變數（千萬不要 commit）======
+.env
+.env.local
+.env.*.local
+.env.docker
+
+# ====== Docker ======
+# 保留 docker-compose.yml(客戶要用),但忽略本機開發專屬 override
+docker-compose.override.yml
+
+# ====== IDE ======
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ====== 作業系統 ======
+.DS_Store
+Thumbs.db
+
+# ====== 日誌 ======
+*.log
+logs/

@@ -1,0 +1,117 @@
+# ============================================================
+# docker-compose.yml — 正式部署版（客戶用）
+#
+# 啟動 4 個服務：postgres、backend、frontend、pgadmin
+# 服務間透過 Docker 內建 DNS 互通：服務名稱 = 主機名稱
+#
+# 使用方式:
+#   docker compose up -d              啟動全部(背景)
+#   docker compose down               停止
+#   docker compose down -v            停止並清空資料庫資料
+#   docker compose ps                 查看狀態
+#   docker compose logs <service>     看 log
+#   docker compose restart backend    重啟單一服務
+#
+# 客戶要改設定:複製 .env.docker.example -> .env.docker,編輯內容
+# ============================================================
+
+services:
+  # ========================================================
+  # PostgreSQL 資料庫
+  # ========================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: cp_postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cpuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cppassword}
+      POSTGRES_DB: ${POSTGRES_DB:-container_packing}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cpuser} -d ${POSTGRES_DB:-container_packing}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+    # 正式環境不對外開 5432(避免外部直連)
+    # 開發版會在 docker-compose.override.yml 開放這個 port
+    # ports:
+    #   - "5432:5432"
+
+  # ========================================================
+  # FastAPI 後端
+  # ========================================================
+  backend:
+    image: cp-backend:dev
+    container_name: cp_backend
+    restart: unless-stopped
+
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cpuser}:${POSTGRES_PASSWORD:-cppassword}@postgres:5432/${POSTGRES_DB:-container_packing}
+      API_HOST: 0.0.0.0
+      API_PORT: 9000
+      DEBUG: "False"
+      CORS_ORIGINS: http://localhost,http://frontend
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    # ports:
+    #   - "9000:9000"
+
+  # ========================================================
+  # React 前端 (Nginx)
+  # ========================================================
+  frontend:
+    image: cp-frontend:dev
+    container_name: cp_frontend
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+
+    depends_on:
+      - backend
+
+  # ========================================================
+  # pgAdmin (資料庫管理介面)
+  # 客戶需要管理資料庫的話用這個 web UI
+  # 開瀏覽器 http://localhost:5050 即可
+  # ========================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cp_pgadmin
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      # 關閉 pgAdmin 的歡迎頁與升級檢查
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+
+    ports:
+      - "8080:80"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+# ============================================================
+# Volumes (持久化資料)
+# ============================================================
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
