@@ -2,9 +2,9 @@
 
 > **Build. Model. Deliver.** — 3D Bin-Packing with forklift aisle constraints, real-time visualization, and full-stack Docker deployment.
 
-**Live Demo → [wutesta0101-hu.github.io/container-packing](https://wutesta0101-hu.github.io/container-packing)**
+**Live Demo → [wutesta0101-hu.github.io/container-packing](https://wutesta0101-hue.github.io/container-packing)**
 
-![System Architecture](docs/architecture.png)
+![System Architecture](https://github.com/user-attachments/assets/6ba09142-ebe9-4dba-a0c6-2232e10eb9a9)
 
 ---
 
