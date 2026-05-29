@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>3D 貨櫃裝箱系統 — 原型</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft JhengHei", sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .app {
+    display: grid;
+    grid-template-columns: 380px 1fr 280px;
+    height: 100vh;
+  }
+
+  /* ========== 左側：資料輸入面板 ========== */
+  .panel-left {
+    background: #ffffff;
+    border-right: 1px solid #e5e5e7;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .panel-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #1d1d1f;
+  }
+  .section {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f2;
+  }
+  .section:last-child { border-bottom: none; }
+  .section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6e6e73;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* 表單 */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .form-grid input, .form-grid select {
+    padding: 8px 10px;
+    border: 1px solid #d2d2d7;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 100%;
+  }
+  .form-grid input:focus, .form-grid select:focus {
+    outline: none;
+    border-color: #0071e3;
+  }
+  .form-row-full { grid-column: span 2; }
+
+  /* 按鈕 */
+  .btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: #0071e3; color: white; }
+  .btn-secondary { background: #e5e5e7; color: #1d1d1f; }
+  .btn-success { background: #34c759; color: white; }
+  .btn-danger { background: #ff3b30; color: white; padding: 4px 8px; font-size: 11px; }
+  .btn-block { width: 100%; }
+
+  /* CSV 拖曳區 */
+  .dropzone {
+    border: 2px dashed #d2d2d7;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fafafa;
+  }
+  .dropzone:hover, .dropzone.drag-over {
+    border-color: #0071e3;
+    background: #f0f7ff;
+  }
+  .dropzone-text { font-size: 13px; color: #6e6e73; }
+  .dropzone-hint { font-size: 11px; color: #86868b; margin-top: 4px; }
+
+  /* 貨物清單 */
+  .cargo-list {
+    max-height: 280px;
+    overflow-y: auto;
+    margin-top: 8px;
+  }
+  .cargo-item {
+    background: #f5f5f7;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .cargo-item-info { flex: 1; }
+  .cargo-item-id { font-weight: 600; }
+  .cargo-item-detail { color: #6e6e73; font-size: 11px; margin-top: 2px; }
+
+  /* 摘要 */
+  .summary {
+    background: #f5f5f7;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .summary-row:last-child { margin-bottom: 0; }
+  .summary-label { color: #6e6e73; }
+  .summary-value { font-weight: 600; }
+  .summary-warning { color: #ff3b30; }
+
+  /* 警告 */
+  .alert {
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .alert.show { display: block; }
+  .alert-warning { background: #fff4e5; color: #b85c00; border: 1px solid #ffd9a8; }
+  .alert-danger { background: #ffe5e5; color: #c00; border: 1px solid #ffb8b8; }
+
+  /* ========== 中間：3D 畫布 ========== */
+  .panel-center {
+    position: relative;
+    background: linear-gradient(180deg, #2a3a4a 0%, #1a2530 100%);
+    overflow: hidden;
+  }
+  #canvas3d { width: 100%; height: 100%; display: block; }
+
+  /* 3D 控制按鈕（右上角） */
+  .view-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+  }
+  .view-btn {
+    background: rgba(255,255,255,0.9);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .view-btn:hover { background: white; }
+  .view-btn.active { background: #0071e3; color: white; }
+
+  /* X-ray 與動畫播放控制（底部） */
+  .playback {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10;
+  }
+  .playback-btn {
+    background: #0071e3;
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .playback-slider {
+    flex: 1;
+    height: 6px;
+  }
+  .playback-label {
+    font-size: 12px;
+    color: #6e6e73;
+    min-width: 70px;
+  }
+  .toggle-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toggle-btn {
+    background: #f5f5f7;
+    border: 1px solid #d2d2d7;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .toggle-btn.active {
+    background: #0071e3;
+    color: white;
+    border-color: #0071e3;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    background: rgba(0,0,0,0.85);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    display: none;
+    z-index: 20;
+    line-height: 1.5;
+  }
+
+  /* ========== 右側：儀表板 ========== */
+  .panel-right {
+    background: #ffffff;
+    border-left: 1px solid #e5e5e7;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .metric-card {
+    background: #f5f5f7;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .metric-label {
+    font-size: 11px;
+    color: #6e6e73;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .metric-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1d1d1f;
+  }
+  .metric-sub {
+    font-size: 12px;
+    color: #6e6e73;
+    margin-top: 4px;
+  }
+  .progress-bar {
+    height: 6px;
+    background: #e5e5e7;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #34c759, #30b350);
+    transition: width 0.4s;
+  }
+  .progress-fill.warn { background: linear-gradient(90deg, #ff9500, #ff6b00); }
+  .progress-fill.danger { background: linear-gradient(90deg, #ff3b30, #d70015); }
+
+  /* 顏色圖例 */
+  .legend {
+    margin-top: 16px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+
+  /* 滾動條 */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ========== 左側面板 ========== -->
+  <aside class="panel-left">
+    <h1 class="panel-title">📦 貨櫃裝箱系統</h1>
+
+    <!-- 貨櫃選擇 -->
+    <div class="section">
+      <div class="section-label">1. 選擇貨櫃</div>
+      <select id="containerType" class="form-row-full" style="width:100%; padding:8px; border:1px solid #d2d2d7; border-radius:6px; font-size:13px;">
+        <option value="20">20' Dry (5898 × 2352 × 2393 mm, 28000 kg)</option>
+        <option value="40" selected>40' Dry (12032 × 2352 × 2393 mm, 26000 kg)</option>
+        <option value="40HQ">40' HQ (12032 × 2352 × 2698 mm, 26000 kg)</option>
+      </select>
+    </div>
+
+    <!-- 手動輸入 -->
+    <div class="section">
+      <div class="section-label">2a. 手動新增貨物</div>
+      <div class="form-grid">
+        <input type="text" id="inId" placeholder="貨物 ID">
+        <select id="inType">
+          <option value="normal">一般</option>
+          <option value="heavy">重物 (深藍)</option>
+          <option value="fragile">易碎品 (橘色)</option>
+          <option value="vip">VIP (金色)</option>
+        </select>
+        <input type="number" id="inL" placeholder="長 (mm)">
+        <input type="number" id="inW" placeholder="寬 (mm)">
+        <input type="number" id="inH" placeholder="高 (mm)">
+        <input type="number" id="inWt" placeholder="重量 (kg)">
+        <input type="number" id="inQty" placeholder="數量" value="1" min="1">
+        <select id="inStack">
+          <option value="true">可堆疊</option>
+          <option value="false">不可堆疊</option>
+        </select>
+        <button class="btn btn-primary form-row-full" onclick="addCargoManual()">+ 新增到清單</button>
+      </div>
+    </div>
+
+    <!-- CSV 匯入 -->
+    <div class="section">
+      <div class="section-label">2b. CSV 匯入</div>
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-text">📁 拖曳 CSV 檔到此 或 點擊選檔</div>
+        <div class="dropzone-hint">欄位：id, type, length, width, height, weight, quantity, stackable</div>
+      </div>
+      <input type="file" id="csvInput" accept=".csv" style="display:none;">
+      <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="loadSampleData()">載入範例資料</button>
+    </div>
+
+    <!-- 貨物清單 -->
+    <div class="section">
+      <div class="section-label">3. 貨物清單 <span id="cargoCount" style="color:#0071e3;">(0)</span></div>
+      <div class="cargo-list" id="cargoList">
+        <div style="text-align:center; color:#86868b; font-size:12px; padding:20px;">尚無貨物</div>
+      </div>
+      <button class="btn btn-secondary btn-block" style="margin-top:8px; font-size:12px;" onclick="clearAll()">清空全部</button>
+    </div>
+
+    <!-- 摘要與計算 -->
+    <div class="section">
+      <div class="section-label">4. 確認與計算</div>
+      <div id="alertCapacity" class="alert alert-warning"></div>
+      <div class="summary">
+        <div class="summary-row">
+          <span class="summary-label">總件數：</span>
+          <span class="summary-value" id="sumCount">0 件</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">總體積：</span>
+          <span class="summary-value" id="sumVolume">0 m³</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">總重量：</span>
+          <span class="summary-value" id="sumWeight">0 kg</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">貨櫃容積：</span>
+          <span class="summary-value" id="sumContainerVol">—</span>
+        </div>
+      </div>
+      <button class="btn btn-success btn-block" onclick="runPacking()">🚀 開始裝箱計算</button>
+    </div>
+  </aside>
+
+  <!-- ========== 中間：3D 場景 ========== -->
+  <main class="panel-center">
+    <canvas id="canvas3d"></canvas>
+
+    <!-- 視角切換按鈕 -->
+    <div class="view-controls">
+      <button class="view-btn active" onclick="setView('perspective', this)">透視</button>
+      <button class="view-btn" onclick="setView('top', this)">鳥瞰</button>
+      <button class="view-btn" onclick="setView('side', this)">側視</button>
+      <button class="view-btn" onclick="setView('front', this)">正視</button>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <!-- 底部播放控制 -->
+    <div class="playback">
+      <button class="playback-btn" id="btnPlay" onclick="togglePlay()">▶</button>
+      <input type="range" class="playback-slider" id="timeSlider" min="0" max="0" value="0" oninput="onSliderChange(this.value)">
+      <span class="playback-label" id="timeLabel">0 / 0</span>
+      <div class="toggle-row">
+        <button class="toggle-btn" id="btnXray" onclick="toggleXray(this)">👁 X 光模式</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========== 右側：儀表板 ========== -->
+  <aside class="panel-right">
+    <h2 class="panel-title">📊 裝箱結果</h2>
+
+    <div class="metric-card">
+      <div class="metric-label">空間利用率</div>
+      <div class="metric-value" id="utilization">—</div>
+      <div class="progress-bar"><div class="progress-fill" id="utilBar" style="width:0%"></div></div>
+      <div class="metric-sub" id="utilSub">尚未計算</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">總重量</div>
+      <div class="metric-value" id="totalWeight">—</div>
+      <div class="metric-sub" id="weightLimit">—</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">重心位置 (X, Y, Z)</div>
+      <div class="metric-value" style="font-size:14px; font-family:monospace;" id="centerOfGravity">—</div>
+      <div class="metric-sub" id="cogStatus">—</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-label">已裝入 / 未裝入</div>
+      <div class="metric-value" id="packedRatio">— / —</div>
+      <div class="metric-sub" id="packedSub">—</div>
+    </div>
+
+    <div class="legend">
+      <div class="section-label">顏色圖例</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#0a3d91;"></div> 重物 (深藍)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#ff9500;"></div> 易碎品 (橘色)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#ffd60a;"></div> VIP 客戶 (金色)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#34c759;"></div> 一般貨物 (綠色)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:repeating-linear-gradient(45deg,#aaa,#aaa 3px,#fff 3px,#fff 6px);"></div> 不可堆疊 (條紋)</div>
+    </div>
+  </aside>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// ============================================================
+// 狀態
+// ============================================================
+const CONTAINERS = {
+  '20':   { name: "20' Dry",  L: 5898,  W: 2352, H: 2393, maxWeight: 28000 },
+  '40':   { name: "40' Dry",  L: 12032, W: 2352, H: 2393, maxWeight: 26000 },
+  '40HQ': { name: "40' HQ",   L: 12032, W: 2352, H: 2698, maxWeight: 26000 },
+};
+
+const COLORS = {
+  normal:  0x34c759,  // 綠
+  heavy:   0x0a3d91,  // 深藍
+  fragile: 0xff9500,  // 橘
+  vip:     0xffd60a,  // 金
+};
+
+let cargoList = [];        // 使用者輸入的原始清單（含 quantity）
+let packedItems = [];      // 演算法輸出（單件，含坐標）
+let unpackedItems = [];    // 裝不下的
+let currentContainer = '40';
+let xrayMode = false;
+let isPlaying = false;
+let playInterval = null;
+let currentStep = 0;
+
+// Three.js 場景
+let scene, camera, renderer, controls;
+let containerMesh, gridHelper, axesHelper;
+let cargoMeshes = [];
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hoveredMesh = null;
+
+// ============================================================
+// 初始化 Three.js
+// ============================================================
+function initThree() {
+  const canvas = document.getElementById('canvas3d');
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+
+  scene = new THREE.Scene();
+  scene.background = null;
+
+  camera = new THREE.PerspectiveCamera(45, w / h, 10, 100000);
+  camera.position.set(15000, 10000, 15000);
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.target.set(6000, 1200, 1200);
+
+  // 燈光
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+  dirLight.position.set(10000, 15000, 8000);
+  scene.add(dirLight);
+  const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+  dirLight2.position.set(-5000, 5000, -5000);
+  scene.add(dirLight2);
+
+  drawContainer();
+
+  // 滑鼠事件 — 標籤顯示
+  canvas.addEventListener('mousemove', onMouseMove);
+
+  window.addEventListener('resize', onResize);
+  animate();
+}
+
+function onResize() {
+  const canvas = document.getElementById('canvas3d');
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// ============================================================
+// 繪製貨櫃
+// ============================================================
+function drawContainer() {
+  // 移除舊的
+  if (containerMesh) scene.remove(containerMesh);
+  if (gridHelper) scene.remove(gridHelper);
+  if (axesHelper) scene.remove(axesHelper);
+
+  const c = CONTAINERS[currentContainer];
+
+  // 半透明線框
+  const group = new THREE.Group();
+  const geo = new THREE.BoxGeometry(c.L, c.H, c.W);
+  const edges = new THREE.EdgesGeometry(geo);
+  const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+  const line = new THREE.LineSegments(edges, lineMat);
+  line.position.set(c.L/2, c.H/2, c.W/2);
+  group.add(line);
+
+  // 半透明面
+  const faceMat = new THREE.MeshBasicMaterial({
+    color: 0x88aacc, transparent: true, opacity: 0.05, side: THREE.DoubleSide
+  });
+  const faceMesh = new THREE.Mesh(geo, faceMat);
+  faceMesh.position.set(c.L/2, c.H/2, c.W/2);
+  group.add(faceMesh);
+
+  scene.add(group);
+  containerMesh = group;
+
+  // 網格輔助線（地板）
+  const gridSize = Math.max(c.L, c.W) * 1.2;
+  gridHelper = new THREE.GridHelper(gridSize, 24, 0x666666, 0x444444);
+  gridHelper.position.set(c.L/2, 0, c.W/2);
+  scene.add(gridHelper);
+
+  // 座標軸
+  axesHelper = new THREE.AxesHelper(2000);
+  scene.add(axesHelper);
+
+  // 更新 controls target 到貨櫃中心
+  if (controls) controls.target.set(c.L/2, c.H/2, c.W/2);
+}
+
+// ============================================================
+// 貨物管理
+// ============================================================
+function addCargoManual() {
+  const id = document.getElementById('inId').value.trim();
+  const type = document.getElementById('inType').value;
+  const L = +document.getElementById('inL').value;
+  const W = +document.getElementById('inW').value;
+  const H = +document.getElementById('inH').value;
+  const wt = +document.getElementById('inWt').value;
+  const qty = +document.getElementById('inQty').value || 1;
+  const stackable = document.getElementById('inStack').value === 'true';
+
+  if (!id || !L || !W || !H || !wt) {
+    alert('請填完所有欄位');
+    return;
+  }
+
+  // 驗證單件是否超過貨櫃內徑
+  const c = CONTAINERS[currentContainer];
+  if (L > c.L || W > c.W || H > c.H) {
+    alert(`貨物尺寸 ${L}×${W}×${H} 超過貨櫃內徑 ${c.L}×${c.W}×${c.H}`);
+    return;
+  }
+
+  cargoList.push({ id, type, L, W, H, weight: wt, quantity: qty, stackable });
+  refreshUI();
+  // 清空表單
+  ['inId','inL','inW','inH','inWt'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('inQty').value = 1;
+}
+
+function removeCargo(idx) {
+  cargoList.splice(idx, 1);
+  refreshUI();
+}
+
+function clearAll() {
+  if (!confirm('確定清空全部貨物？')) return;
+  cargoList = [];
+  packedItems = [];
+  unpackedItems = [];
+  cargoMeshes.forEach(m => scene.remove(m));
+  cargoMeshes = [];
+  refreshUI();
+  refreshDashboard();
+}
+
+// ============================================================
+// CSV 匯入
+// ============================================================
+function setupCsvImport() {
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('csvInput');
+
+  dz.addEventListener('click', () => input.click());
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) parseCsvFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', e => {
+    if (e.target.files.length) parseCsvFile(e.target.files[0]);
+  });
+}
+
+function parseCsvFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    let added = 0;
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(',').map(c => c.trim());
+      const row = {};
+      headers.forEach((h, idx) => row[h] = cols[idx]);
+      if (!row.id) continue;
+      cargoList.push({
+        id: row.id,
+        type: row.type || 'normal',
+        L: +row.length, W: +row.width, H: +row.height,
+        weight: +row.weight,
+        quantity: +(row.quantity || 1),
+        stackable: row.stackable !== 'false',
+      });
+      added++;
+    }
+    refreshUI();
+    alert(`成功匯入 ${added} 筆`);
+  };
+  reader.readAsText(file);
+}
+
+// ============================================================
+// 範例資料
+// ============================================================
+function loadSampleData() {
+  cargoList = [
+    { id: 'A001', type: 'heavy',   L: 1200, W: 1000, H: 800,  weight: 800, quantity: 4, stackable: true },
+    { id: 'A002', type: 'heavy',   L: 1500, W: 1200, H: 900,  weight: 1200, quantity: 3, stackable: true },
+    { id: 'B001', type: 'fragile', L: 1000, W: 800,  H: 600,  weight: 150, quantity: 5, stackable: false },
+    { id: 'B002', type: 'fragile', L: 800,  W: 600,  H: 500,  weight: 80,  quantity: 6, stackable: false },
+    { id: 'V001', type: 'vip',     L: 1400, W: 1100, H: 1000, weight: 600, quantity: 2, stackable: true },
+    { id: 'N001', type: 'normal',  L: 1000, W: 800,  H: 700,  weight: 250, quantity: 8, stackable: true },
+    { id: 'N002', type: 'normal',  L: 1200, W: 800,  H: 600,  weight: 300, quantity: 5, stackable: true },
+  ];
+  refreshUI();
+}
+
+// ============================================================
+// UI 更新
+// ============================================================
+function refreshUI() {
+  // 貨物清單
+  const list = document.getElementById('cargoList');
+  document.getElementById('cargoCount').textContent = `(${cargoList.length})`;
+  if (cargoList.length === 0) {
+    list.innerHTML = '<div style="text-align:center; color:#86868b; font-size:12px; padding:20px;">尚無貨物</div>';
+  } else {
+    list.innerHTML = cargoList.map((c, i) => `
+      <div class="cargo-item">
+        <div class="cargo-item-info">
+          <div class="cargo-item-id">${c.id} <span style="color:#86868b;">×${c.quantity}</span></div>
+          <div class="cargo-item-detail">${c.L}×${c.W}×${c.H}mm · ${c.weight}kg · ${typeLabel(c.type)}${c.stackable ? '' : ' · 不可堆疊'}</div>
+        </div>
+        <button class="btn btn-danger" onclick="removeCargo(${i})">×</button>
+      </div>
+    `).join('');
+  }
+
+  // 摘要
+  const totalCount = cargoList.reduce((s, c) => s + c.quantity, 0);
+  const totalVol = cargoList.reduce((s, c) => s + (c.L * c.W * c.H * c.quantity) / 1e9, 0);
+  const totalWt = cargoList.reduce((s, c) => s + c.weight * c.quantity, 0);
+  const cont = CONTAINERS[currentContainer];
+  const contVol = (cont.L * cont.W * cont.H) / 1e9;
+
+  document.getElementById('sumCount').textContent = `${totalCount} 件`;
+  document.getElementById('sumVolume').textContent = `${totalVol.toFixed(2)} m³`;
+  document.getElementById('sumWeight').textContent = `${totalWt.toLocaleString()} kg`;
+  document.getElementById('sumContainerVol').textContent = `${contVol.toFixed(2)} m³`;
+
+  // 容量警告
+  const alertEl = document.getElementById('alertCapacity');
+  const warnings = [];
+  if (totalVol > contVol) {
+    warnings.push(`⚠️ 總體積 ${totalVol.toFixed(2)} m³ 超過貨櫃容積 ${contVol.toFixed(2)} m³（超出 ${((totalVol/contVol - 1)*100).toFixed(1)}%）`);
+  } else if (totalVol > contVol * 0.85) {
+    warnings.push(`📐 體積已達貨櫃 ${(totalVol/contVol*100).toFixed(1)}%，實際裝載率約 75-85%（受擺放限制）`);
+  }
+  if (totalWt > cont.maxWeight) {
+    warnings.push(`⚠️ 總重量 ${totalWt.toLocaleString()} kg 超過貨櫃最大載重 ${cont.maxWeight.toLocaleString()} kg`);
+  }
+  if (warnings.length) {
+    alertEl.innerHTML = warnings.join('<br>');
+    alertEl.classList.add('show');
+    alertEl.className = totalVol > contVol || totalWt > cont.maxWeight
+      ? 'alert alert-danger show' : 'alert alert-warning show';
+  } else {
+    alertEl.classList.remove('show');
+  }
+}
+
+function typeLabel(t) {
+  return { normal: '一般', heavy: '重物', fragile: '易碎', vip: 'VIP' }[t] || t;
+}
+
+document.getElementById('containerType').addEventListener('change', e => {
+  currentContainer = e.target.value;
+  drawContainer();
+  refreshUI();
+});
+
+// ============================================================
+// 裝箱演算法（Bottom-Left-Back 貪婪 + 簡化的堆疊/承重檢查）
+// ============================================================
+function runPacking() {
+  if (cargoList.length === 0) {
+    alert('請先新增貨物');
+    return;
+  }
+
+  // 1. 展開 quantity 成單件清單
+  let items = [];
+  cargoList.forEach(c => {
+    for (let i = 0; i < c.quantity; i++) {
+      items.push({
+        id: `${c.id}-${i+1}`,
+        baseId: c.id,
+        type: c.type,
+        L: c.L, W: c.W, H: c.H,
+        weight: c.weight,
+        density: c.weight / (c.L * c.W * c.H / 1e9),
+        stackable: c.stackable,
+      });
+    }
+  });
+
+  // 2. 排序：VIP 優先 → 體積大優先 → 重量大優先
+  items.sort((a, b) => {
+    if (a.type === 'vip' && b.type !== 'vip') return -1;
+    if (b.type === 'vip' && a.type !== 'vip') return 1;
+    const va = a.L * a.W * a.H, vb = b.L * b.W * b.H;
+    if (Math.abs(vb - va) > 1e6) return vb - va;
+    return b.weight - a.weight;
+  });
+
+  // 3. 簡化的 BLB 裝箱
+  const cont = CONTAINERS[currentContainer];
+  const placed = [];
+  const unplaced = [];
+  // 候選位置點
+  let anchors = [{ x: 0, y: 0, z: 0 }];
+
+  for (const item of items) {
+    let bestPos = null;
+    // 排序候選點：先 z 小（底部）→ x 小（後）→ y 小（左）
+    anchors.sort((a, b) => a.z - b.z || a.x - b.x || a.y - b.y);
+    for (const a of anchors) {
+      if (a.x + item.L <= cont.L && a.y + item.W <= cont.W && a.z + item.H <= cont.H) {
+        // 檢查是否與已放置物碰撞
+        const collide = placed.some(p =>
+          !(a.x + item.L <= p.x || p.x + p.L <= a.x ||
+            a.y + item.W <= p.y || p.y + p.W <= a.y ||
+            a.z + item.H <= p.z || p.z + p.H <= a.z)
+        );
+        if (collide) continue;
+
+        // 堆疊檢查：若 z>0，必須有支撐物且支撐物可堆疊、密度更大
+        if (a.z > 0) {
+          const supports = placed.filter(p =>
+            Math.abs(p.z + p.H - a.z) < 1 &&
+            !(a.x + item.L <= p.x || p.x + p.L <= a.x ||
+              a.y + item.W <= p.y || p.y + p.W <= a.y)
+          );
+          if (supports.length === 0) continue;
+          // 任一支撐物不可堆疊 → 拒絕
+          if (supports.some(s => !s.stackable)) continue;
+          // 密度檢查：上方密度 ≤ 下方
+          if (supports.some(s => item.density > s.density * 1.05)) continue;
+        }
+
+        bestPos = a;
+        break;
+      }
+    }
+
+    if (bestPos) {
+      const p = { ...item, x: bestPos.x, y: bestPos.y, z: bestPos.z };
+      placed.push(p);
+      // 新增三個候選錨點
+      anchors.push({ x: p.x + p.L, y: p.y, z: p.z });
+      anchors.push({ x: p.x, y: p.y + p.W, z: p.z });
+      anchors.push({ x: p.x, y: p.y, z: p.z + p.H });
+      // 移除被佔用的錨點
+      anchors = anchors.filter(an =>
+        !(an.x === bestPos.x && an.y === bestPos.y && an.z === bestPos.z)
+      );
+    } else {
+      unplaced.push(item);
+    }
+  }
+
+  packedItems = placed;
+  unpackedItems = unplaced;
+
+  renderPackedItems();
+  refreshDashboard();
+
+  // 重置播放
+  currentStep = packedItems.length;
+  document.getElementById('timeSlider').max = packedItems.length;
+  document.getElementById('timeSlider').value = packedItems.length;
+  updateTimeLabel();
+}
+
+// ============================================================
+// 渲染裝箱結果
+// ============================================================
+function renderPackedItems() {
+  // 清除舊 mesh
+  cargoMeshes.forEach(m => scene.remove(m));
+  cargoMeshes = [];
+
+  packedItems.forEach((item, idx) => {
+    const geo = new THREE.BoxGeometry(item.L, item.H, item.W);
+    const color = COLORS[item.type] || COLORS.normal;
+    const mat = new THREE.MeshLambertMaterial({
+      color, transparent: true, opacity: 1.0
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    // Three.js: y 為高度，所以坐標映射 (x, z, y) → (x, y, z) Three
+    mesh.position.set(
+      item.x + item.L / 2,
+      item.z + item.H / 2,
+      item.y + item.W / 2
+    );
+
+    // 邊框
+    const edges = new THREE.EdgesGeometry(geo);
+    const line = new THREE.LineSegments(edges,
+      new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.4, transparent: true }));
+    mesh.add(line);
+
+    // 不可堆疊：加紅色頂部標示
+    if (!item.stackable) {
+      const topGeo = new THREE.PlaneGeometry(item.L * 0.9, item.W * 0.9);
+      const topMat = new THREE.MeshBasicMaterial({
+        color: 0xff3b30, transparent: true, opacity: 0.5, side: THREE.DoubleSide
+      });
+      const topPlane = new THREE.Mesh(topGeo, topMat);
+      topPlane.rotation.x = -Math.PI / 2;
+      topPlane.position.y = item.H / 2 + 5;
+      mesh.add(topPlane);
+    }
+
+    mesh.userData = { item, index: idx };
+    scene.add(mesh);
+    cargoMeshes.push(mesh);
+  });
+}
+
+// ============================================================
+// 儀表板更新
+// ============================================================
+function refreshDashboard() {
+  if (packedItems.length === 0) {
+    document.getElementById('utilization').textContent = '—';
+    document.getElementById('utilBar').style.width = '0%';
+    document.getElementById('utilSub').textContent = '尚未計算';
+    document.getElementById('totalWeight').textContent = '—';
+    document.getElementById('weightLimit').textContent = '—';
+    document.getElementById('centerOfGravity').textContent = '—';
+    document.getElementById('cogStatus').textContent = '—';
+    document.getElementById('packedRatio').textContent = '— / —';
+    document.getElementById('packedSub').textContent = '—';
+    return;
+  }
+
+  const cont = CONTAINERS[currentContainer];
+  const usedVol = packedItems.reduce((s, p) => s + p.L * p.W * p.H, 0);
+  const contVol = cont.L * cont.W * cont.H;
+  const util = (usedVol / contVol) * 100;
+
+  document.getElementById('utilization').textContent = util.toFixed(1) + '%';
+  const bar = document.getElementById('utilBar');
+  bar.style.width = util + '%';
+  bar.className = 'progress-fill' + (util > 80 ? ' ' : util > 60 ? ' warn' : ' danger');
+  document.getElementById('utilSub').textContent = `${(usedVol/1e9).toFixed(2)} / ${(contVol/1e9).toFixed(2)} m³`;
+
+  // 重量
+  const totalWt = packedItems.reduce((s, p) => s + p.weight, 0);
+  document.getElementById('totalWeight').textContent = totalWt.toLocaleString() + ' kg';
+  document.getElementById('weightLimit').textContent = `上限 ${cont.maxWeight.toLocaleString()} kg · 剩餘 ${(cont.maxWeight - totalWt).toLocaleString()} kg`;
+
+  // 重心
+  let cx = 0, cy = 0, cz = 0;
+  packedItems.forEach(p => {
+    cx += (p.x + p.L/2) * p.weight;
+    cy += (p.y + p.W/2) * p.weight;
+    cz += (p.z + p.H/2) * p.weight;
+  });
+  cx /= totalWt; cy /= totalWt; cz /= totalWt;
+  document.getElementById('centerOfGravity').textContent =
+    `(${(cx/1000).toFixed(2)}, ${(cy/1000).toFixed(2)}, ${(cz/1000).toFixed(2)}) m`;
+
+  // 重心狀態：x 應靠近貨櫃中心、z 應在低位
+  const xOffset = Math.abs(cx - cont.L/2) / (cont.L/2);
+  const cogOk = xOffset < 0.15 && cz < cont.H * 0.5;
+  document.getElementById('cogStatus').textContent =
+    cogOk ? '✓ 重心穩定' : '⚠ 重心偏移，建議調整';
+  document.getElementById('cogStatus').style.color = cogOk ? '#34c759' : '#ff9500';
+
+  // 裝入比例
+  const total = packedItems.length + unpackedItems.length;
+  document.getElementById('packedRatio').textContent = `${packedItems.length} / ${total}`;
+  document.getElementById('packedSub').textContent =
+    unpackedItems.length === 0 ? '✓ 全部裝入' : `${unpackedItems.length} 件未裝入`;
+}
+
+// ============================================================
+// 視角切換
+// ============================================================
+function setView(mode, btn) {
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const c = CONTAINERS[currentContainer];
+  const cx = c.L / 2, cy = c.H / 2, cz = c.W / 2;
+  switch (mode) {
+    case 'top':         camera.position.set(cx, c.H * 4, cz); break;
+    case 'side':        camera.position.set(cx, cy, cz + c.W * 5); break;
+    case 'front':       camera.position.set(c.L * 1.5, cy, cz); break;
+    case 'perspective': camera.position.set(c.L * 1.2, c.H * 2.5, c.W * 4); break;
+  }
+  controls.target.set(cx, cy, cz);
+  controls.update();
+}
+
+// ============================================================
+// X 光模式
+// ============================================================
+function toggleXray(btn) {
+  xrayMode = !xrayMode;
+  btn.classList.toggle('active', xrayMode);
+  cargoMeshes.forEach(m => {
+    m.material.transparent = true;
+    m.material.opacity = xrayMode ? 0.3 : 1.0;
+    m.material.depthWrite = !xrayMode;
+  });
+}
+
+// ============================================================
+// 動畫播放
+// ============================================================
+function togglePlay() {
+  if (packedItems.length === 0) return;
+  isPlaying = !isPlaying;
+  document.getElementById('btnPlay').textContent = isPlaying ? '⏸' : '▶';
+  if (isPlaying) {
+    if (currentStep >= packedItems.length) {
+      currentStep = 0;
+      // 重新隱藏全部
+      cargoMeshes.forEach(m => m.visible = false);
+    }
+    playInterval = setInterval(() => {
+      if (currentStep >= packedItems.length) {
+        clearInterval(playInterval);
+        isPlaying = false;
+        document.getElementById('btnPlay').textContent = '▶';
+        return;
+      }
+      currentStep++;
+      updateVisibility();
+      document.getElementById('timeSlider').value = currentStep;
+      updateTimeLabel();
+    }, 200);
+  } else {
+    clearInterval(playInterval);
+  }
+}
+
+function onSliderChange(val) {
+  currentStep = +val;
+  updateVisibility();
+  updateTimeLabel();
+}
+
+function updateVisibility() {
+  cargoMeshes.forEach((m, i) => {
+    m.visible = i < currentStep;
+  });
+}
+
+function updateTimeLabel() {
+  document.getElementById('timeLabel').textContent =
+    `${currentStep} / ${packedItems.length}`;
+}
+
+// ============================================================
+// 滑鼠 hover 顯示標籤
+// ============================================================
+function onMouseMove(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(cargoMeshes);
+
+  const tooltip = document.getElementById('tooltip');
+  if (intersects.length > 0) {
+    const item = intersects[0].object.userData.item;
+    tooltip.innerHTML = `
+      <strong>${item.id}</strong><br>
+      類型：${typeLabel(item.type)}<br>
+      尺寸：${item.L}×${item.W}×${item.H} mm<br>
+      重量：${item.weight} kg<br>
+      位置：(${item.x}, ${item.y}, ${item.z})<br>
+      ${item.stackable ? '可堆疊' : '⚠ 不可堆疊'}
+    `;
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top = (e.clientY + 12) + 'px';
+  } else {
+    tooltip.style.display = 'none';
+  }
+}
+
+// ============================================================
+// 啟動
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  initThree();
+  setupCsvImport();
+  refreshUI();
+});
+</script>
+</body>
+</html>
