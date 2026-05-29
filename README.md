@@ -1,219 +1,297 @@
-# 3D 貨櫃裝箱系統 — 環境建置指南
+# 3D Container Packing System
 
-## 專案結構
+> **Build. Model. Deliver.** — 3D Bin-Packing with forklift aisle constraints, real-time visualization, and full-stack Docker deployment.
+
+**Live Demo → [wutesta0101-hu.github.io/container-packing](https://wutesta0101-hu.github.io/container-packing)**
+
+![System Architecture](docs/architecture.png)
+
+---
+
+## What It Does
+
+Upload cargo data (manual input or CSV), and the system calculates an optimal 3D loading plan for a shipping container — respecting physical constraints most bin-packing demos ignore:
+
+- **Forklift aisle clearance**: every item must be reachable by a forklift entering from the door; the algorithm enforces this geometrically, not just as a heuristic
+- **Stacking rules**: items can only be stacked on stackable cargo, and only if the upper item's density ≤ 105% of the supporting item's density
+- **VIP priority**: designated high-value cargo is packed into the innermost positions first
+- **Inside-out loading order**: packing proceeds from the rear of the container toward the door, matching real forklift workflow
+
+Results are rendered in interactive 3D (Three.js) with X-ray mode, step-by-step playback, and a utilization / center-of-gravity dashboard.
+
+---
+
+## System Architecture
 
 ```
-container-packing/
-├── backend/
-│   ├── requirements.txt    ← Python 套件清單
-│   └── .env.example        ← 環境變數範本
-├── frontend/               ← 之後用 Vite 建立
-├── docker-compose.yml      ← PostgreSQL + pgAdmin
-└── .gitignore
+┌─────────────────────────────────────────┐
+│           Frontend (React + Vite)        │
+│                                         │
+│  LeftPanel      CenterCanvas  RightPanel │
+│  ├ ContainerSelector  ├ ContainerScene  ├ UtilizationCard │
+│  ├ CargoForm          ├ CargoBoxes      ├ WeightCard      │
+│  ├ CsvDropzone        ├ ViewControls   ├ DirectionCard   │
+│  ├ CargoList          └ PlaybackBar    └ LegendCard      │
+│  └ SummaryPanel                                          │
+│                                                          │
+│  State: Zustand (useCargoStore)                          │
+│  API:   apiClient.js → HTTP/JSON                         │
+└─────────────────┬───────────────────────┘
+                  │ POST /api/v1/pack
+                  │ GET  /api/v1/results/{id}
+┌─────────────────▼───────────────────────┐
+│           Backend (FastAPI)              │
+│                                         │
+│  routes/pack.py      schemas/           │
+│  ├ POST /api/v1/pack  └ Pydantic        │
+│  └ GET  /results/{id}   Request/Response│
+│                                         │
+│  services/packing_service.py            │
+│  ├ Expand quantity                      │
+│  ├ VIP sort + density sort              │
+│  └ Orchestrate algorithm + DB write     │
+│                                         │
+│  algorithm/packing.py  ←── Core         │
+│  ├ 3DBPP (BLB anchor-point method)      │
+│  ├ Collision detection                  │
+│  ├ Stacking constraint                  │
+│  └ Forklift aisle constraint            │
+│                                         │
+│  db/repository.py (SQLAlchemy ORM)      │
+│  └ Tasks + PackedItems tables           │
+└─────────────────┬───────────────────────┘
+                  │
+┌─────────────────▼───────────────────────┐
+│       PostgreSQL 16 (Docker)             │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-## 一、啟動 PostgreSQL（用 Docker）
+## Core Algorithm
 
-在專案根目錄（`container-packing/`）下打開終端機：
+The packing engine (`algorithm/packing.py`) implements a **3D Bottom-Left-Back (BLB)** anchor-point algorithm with three layers of physical constraints:
+
+### 1. Sorting Strategy
+```
+VIP items first → largest volume → heaviest weight
+```
+VIP items land in innermost positions, guaranteeing they are loaded last (inside-out), which is how real forklifts operate.
+
+### 2. Placement Loop
+For each item, candidate anchor points are tried in order: smallest X (deepest in container) → smallest Z (lowest) → smallest Y. The first position that passes all constraints is accepted; three new anchor points are generated.
+
+### 3. Constraint Stack
+```
+① Boundary check        — item must fit within container dimensions
+② Collision check       — no overlap with already-placed items
+③ Stacking check        — if z > 0, must have a stackable support beneath
+                          upper item density ≤ support density × 1.05
+④ Forklift aisle check  — corridor from item to door must be clear
+                          aisle width = max(item width, forklift width)
+                          aisle height = forklift body height
+```
+
+The forklift constraint (`isAisleClear`) scans all placed items between the candidate position and the container door, blocking placement if any item falls within the forklift's path envelope. This is the key differentiator from standard bin-packing implementations.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 + Vite, Three.js, Zustand, Axios |
+| 3D Rendering | Three.js r128 (custom OrbitControls) |
+| Backend | Python 3.11, FastAPI, Pydantic v2 |
+| Database | PostgreSQL 16, SQLAlchemy ORM |
+| Containerization | Docker + Docker Compose |
+| Frontend Serving | Nginx (production build) |
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Docker Desktop (or Docker Engine + Compose plugin)
+- Git
+
+### 1. Clone
+
+```bash
+git clone https://github.com/wutesta0101-hu/container-packing.git
+cd container-packing
+```
+
+### 2. Configure Environment
+
+```bash
+cp .env.docker.example .env.docker
+# Edit .env.docker if you want to change DB credentials (defaults work out of the box)
+```
+
+### 3. Build and Start
 
 ```bash
 docker compose up -d
 ```
 
-這會在背景啟動兩個服務：
+This starts four services:
 
-| 服務 | 用途 | 連線位置 |
+| Service | URL | Purpose |
 |---|---|---|
-| `cp_postgres` | PostgreSQL 16 資料庫 | `localhost:5432` |
-| `cp_pgadmin` | 資料庫圖形管理介面 | http://localhost:5050 |
+| Frontend | http://localhost | React app (Nginx) |
+| Backend | internal only | FastAPI (port 9000) |
+| PostgreSQL | internal only | Database |
+| pgAdmin | http://localhost:8080 | DB management UI |
 
-**資料庫連線資訊：**
-- 帳號：`cpuser`
-- 密碼：`cppassword`
-- 資料庫名稱：`container_packing`
+### 4. Verify
 
-**pgAdmin 登入：**
-- Email：`admin@example.com`
-- 密碼：`admin`
-
-驗證是否啟動成功：
 ```bash
-docker compose ps
+docker compose ps          # All services should show "running"
+docker compose logs backend  # Should show "Uvicorn running"
 ```
-看到兩個服務都是 `running` 就成功了。
 
-**常用指令：**
+Open http://localhost — the packing interface should load.
+
+### Stop
+
 ```bash
-docker compose up -d      # 啟動
-docker compose stop       # 停止（保留資料）
-docker compose down       # 停止並移除容器（保留資料 volume）
-docker compose down -v    # 連資料一起清除（重置用）
-docker compose logs -f    # 看即時 log
+docker compose down          # Stop (data preserved)
+docker compose down -v       # Stop + wipe database
 ```
 
 ---
 
-## 二、設定後端（FastAPI）
+## API Reference
 
-### 1. 在 PyCharm 開啟專案
+### POST `/api/v1/pack`
 
-`File → Open` 選擇 `container-packing/` 資料夾。
+Submit cargo data and trigger the packing algorithm.
 
-### 2. 建立 Python 虛擬環境
+```json
+// Request
+{
+  "container": "20ft",
+  "forklift": "linde_e25",
+  "cargo": [
+    {
+      "id": "A001",
+      "type": "standard",
+      "L": 1200,
+      "W": 800,
+      "H": 1000,
+      "weight": 500,
+      "quantity": 3,
+      "stackable": true
+    }
+  ]
+}
 
-`Settings → Project → Python Interpreter → Add Interpreter → Add Local Interpreter`：
-- 選 **Virtualenv Environment**
-- Location：`container-packing/backend/.venv`
-- Base interpreter：你的 Python 3.11+
-
-### 3. 安裝套件
-
-打開 PyCharm 內建 Terminal（確認左下角顯示 `(.venv)`）：
-
-```bash
-cd backend
-pip install -r requirements.txt
+// Response
+{
+  "task_id": "abc123",
+  "packed": [
+    { "id": "A001-1", "x": 0, "y": 0, "z": 0, "L": 1200, "W": 800, "H": 1000 }
+  ],
+  "unpacked": [],
+  "utilization": 0.87,
+  "cog": { "x": 4200, "y": 1150, "z": 620 }
+}
 ```
 
-如果看到綠色字 `Successfully installed ...` 就成功了。
+### GET `/api/v1/results/{task_id}`
 
-### 4. 設定環境變數
-
-```bash
-# Mac / Linux
-cp .env.example .env
-
-# Windows (PowerShell)
-copy .env.example .env
-```
-
-`.env` 是給本地用的，已經被 `.gitignore` 排除，**永遠不要 commit**。
-
-### 5. 驗證後端可跑
-
-先建立一個最小的 `main.py` 測試（之後我們會擴充）：
-
-```python
-# backend/main.py
-from fastapi import FastAPI
-
-app = FastAPI(title="Container Packing API")
-
-@app.get("/")
-def root():
-    return {"status": "ok"}
-```
-
-跑起來：
-```bash
-uvicorn main:app --reload --host 127.0.0.1 --port 9000
-```
-
-請先執行方案一：
-uvicorn main:app --reload --host 127.0.0.1 --port 9000
-
-如果成功啟動，您會看到：
-INFO: Uvicorn running on http://127.0.0.1:9000
-
-這時請打開瀏覽器造訪：
-http://127.0.0.1:9000/docs
-
-只要看到 FastAPI 的藍色畫面（Swagger UI），我們就過關了
+Retrieve a previously computed result.
 
 ---
 
-## 三、建立前端（Vite + React）
+## Project Structure
 
-### 1. 確認 Node.js 版本
-
-```bash
-node -v   # 要 v20.x 或更新
-npm -v    # 要 v10.x 或更新
 ```
-
-### 2. 在專案根目錄執行
-
-```bash
-# 從 container-packing/ 開始
-npm create vite@latest frontend -- --template react
-
-cd frontend
-npm install
+container-packing/
+├── backend/
+│   ├── algorithm/
+│   │   └── packing.py          ← 3DBPP core (pure functions, unit-testable)
+│   ├── db/
+│   │   └── repository.py       ← SQLAlchemy ORM, Tasks + PackedItems
+│   ├── routes/
+│   │   └── pack.py             ← FastAPI route handlers
+│   ├── schemas/                ← Pydantic request/response models
+│   ├── services/
+│   │   └── packing_service.py  ← Business logic, orchestration
+│   ├── core/
+│   │   └── config.py           ← .env, CORS settings
+│   ├── tests/                  ← Unit tests for algorithm
+│   ├── main.py
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── LeftPanel/      ← Input forms, CSV upload, cargo list
+│   │   │   ├── CenterCanvas/   ← Three.js 3D scene
+│   │   │   └── RightPanel/     ← Dashboard cards
+│   │   ├── store/
+│   │   │   └── useCargoStore.js ← Zustand global state
+│   │   └── api/
+│   │       └── apiClient.js    ← Axios, all backend calls
+│   ├── Dockerfile
+│   └── nginx.conf
+├── docker-compose.yml
+├── docker-compose.override.yml ← Dev overrides (expose ports, hot reload)
+└── .env.docker.example
 ```
-
-選項提示時：
-- Framework：**React**
-- Variant：**JavaScript**（如果你會 TypeScript 也可以選 TypeScript）
-
-### 3. 安裝必要套件
-
-```bash
-# UI 與表單
-npm install @mui/material @emotion/react @emotion/styled
-npm install @mui/icons-material
-
-# CSV 解析
-npm install papaparse
-
-# API 呼叫
-npm install axios
-
-# 3D 渲染（給模組 6 用）
-npm install three @react-three/fiber @react-three/drei
-```
-
-### 4. 啟動前端
-
-```bash
-npm run dev
-```
-
-打開瀏覽器看 http://localhost:5173 應該看到 Vite 預設的 React 歡迎頁。
 
 ---
 
-## 四、PyCharm Run Configuration 設定（強烈推薦）
+## Supported Containers
 
-省去每次都要打指令的麻煩。
+| Code | Dimensions (L × W × H mm) |
+|---|---|
+| `20ft` | 5,900 × 2,350 × 2,390 |
+| `40ft` | 12,030 × 2,350 × 2,390 |
+| `40ft_hc` | 12,030 × 2,350 × 2,695 |
 
-### 後端：`Run → Edit Configurations → + → Python`
-- Name：`Backend (FastAPI)`
-- Module name：`uvicorn`（注意是 Module，不是 Script）
-- Parameters：`main:app --reload`
-- Working directory：`container-packing/backend`
-- Python interpreter：選你剛建的 .venv
+## Supported Forklifts
 
-### 前端：`Run → Edit Configurations → + → npm`
-- Name：`Frontend (Vite)`
-- package.json：選 `container-packing/frontend/package.json`
-- Command：`run`
-- Scripts：`dev`
+Based on Linde E-series technical specifications:
 
-設好之後右上角會有兩個綠色三角形按鈕，一鍵啟動。
-
----
-
-## 五、檢查清單（環境是否齊全）
-
-跑完上面步驟，下面這 4 個都要能成功：
-
-- [ ] `docker compose ps` 顯示 postgres 與 pgadmin 都 running
-- [ ] 瀏覽器打開 http://localhost:5050 能看到 pgAdmin 登入頁
-- [ ] 瀏覽器打開 http://127.0.0.1:9000/docs 能看到 FastAPI Swagger
-- [ ] 瀏覽器打開 http://localhost:5173 能看到 Vite React 頁面
-
-**全部打勾 → 環境完成，可以進入開發階段。**
+| Code | Width (mm) | Body Height (mm) |
+|---|---|---|
+| `linde_e25` | 1,100 | 2,150 |
+| `linde_e30` | 1,150 | 2,150 |
+| `linde_e35` | 1,200 | 2,200 |
 
 ---
 
-## 六、接下來的開發順序建議
+## CSV Import Format
 
-1. **模組 2 + 模組 4**（後端骨架）— Pydantic schema、API route、資料庫 model
-2. **模組 3**（核心演算法）— 純函數的 3DBPP，先用單元測試驗證
-3. **模組 5**（資料持久化）— SQLAlchemy 接上 PostgreSQL
-4. **模組 1**（前端輸入）— React 表單與 CSV 上傳
-5. **模組 6**（3D 可視化）— Three.js 串接後端結果
+Upload a `.csv` file with the following columns:
 
-這個順序的好處是：演算法是核心難點，先把它寫對且測試通過，後面接 UI 才不會白工。
+```csv
+id,type,L,W,H,weight,quantity,stackable
+A001,standard,1200,800,1000,500,3,true
+B001,vip,800,600,800,200,1,false
+```
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | string | Unique cargo identifier |
+| `type` | `standard` / `vip` | VIP items are packed first (innermost) |
+| `L`, `W`, `H` | integer (mm) | Dimensions |
+| `weight` | float (kg) | Used for stacking density check |
+| `quantity` | integer | Number of identical units |
+| `stackable` | boolean | Whether other items can be placed on top |
+
+---
+
+## About
+
+Built by **Testa Wu** — [Eshcol Studio](https://buildmodeldeliver.com)
+
+> From first-line warehouse operations to building the optimization systems that run them.
+
+Part of a portfolio demonstrating Operations Research applied to real logistics problems:
+- **This project** — 3D spatial optimization (Bin-Packing + forklift constraints)
+- **VineOpt** *(in development)* — AIoT vineyard management with OR-Tools + NVIDIA cuOpt
+- **Delivery Tracker** — Gig economy route analytics with efficiency regression modeling
