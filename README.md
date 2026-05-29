@@ -1,6 +1,6 @@
 # 3D Container Packing System
 
-> **Build. Model. Deliver.** — 3D Bin-Packing with forklift aisle constraints, real-time visualization, and full-stack Docker deployment.
+> — 3D Bin-Packing with forklift aisle constraints, real-time visualization, and full-stack Docker deployment.
 
 **Live Demo → [wutesta0101-hu.github.io/container-packing](https://wutesta0101-hue.github.io/container-packing)**
 
@@ -285,13 +285,4 @@ B001,vip,800,600,800,200,1,false
 
 ---
 
-## About
 
-Built by **Testa Wu** — [Eshcol Studio](https://buildmodeldeliver.com)
-
-> From first-line warehouse operations to building the optimization systems that run them.
-
-Part of a portfolio demonstrating Operations Research applied to real logistics problems:
-- **This project** — 3D spatial optimization (Bin-Packing + forklift constraints)
-- **VineOpt** *(in development)* — AIoT vineyard management with OR-Tools + NVIDIA cuOpt
-- **Delivery Tracker** — Gig economy route analytics with efficiency regression modeling
