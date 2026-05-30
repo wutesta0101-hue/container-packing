@@ -90,7 +90,7 @@ z (height)
 
 Items are sorted by a three-key priority before packing begins:
 
-$$\text{sort key} = \bigl(\neg\,\text{is\_vip},\ -V_i,\ -m_i\bigr)$$
+$$\text{sort key} = (\neg\,\text{is\\_vip},\ -V_i,\ -m_i)$$
 
 where $V_i = L_i \times W_i \times H_i$ is item volume and $m_i$ is weight. VIP items always land deepest (innermost), matching real inside-out loading order.
 
@@ -98,7 +98,7 @@ where $V_i = L_i \times W_i \times H_i$ is item volume and $m_i$ is weight. VIP 
 
 After placing item $k$ at position $(x_k, y_k, z_k)$, three new candidate anchors are generated:
 
-$$A_{k+1} = \bigl\{(x_k + L_k,\ y_k,\ z_k),\ (x_k,\ y_k + W_k,\ z_k),\ (x_k,\ y_k,\ z_k + H_k)\bigr\}$$
+$$A_{k+1} = \{(x_k + L_k,\ y_k,\ z_k),\ (x_k,\ y_k + W_k,\ z_k),\ (x_k,\ y_k,\ z_k + H_k)\}$$
 
 Anchors are tried in lexicographic order $(x, z, y)$ — deepest first, then lowest, then leftmost — which produces dense, floor-hugging arrangements.
 
