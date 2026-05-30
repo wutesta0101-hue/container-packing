@@ -70,29 +70,74 @@ Results are rendered in interactive 3D (Three.js) with X-ray mode, step-by-step 
 
 ## Core Algorithm
 
-The packing engine (`algorithm/packing.py`) implements a **3D Bottom-Left-Back (BLB)** anchor-point algorithm with three layers of physical constraints:
+The packing engine (`algorithm/packing.py`) implements a **3D Bottom-Left-Back (BLB)** anchor-point algorithm. Each item is placed at the first feasible anchor point that passes four sequential physical constraints.
+
+### Coordinate System
+
+Origin `(0, 0, 0)` = rear-left-bottom corner of the container. The door is at `x = L_container`.
+
+```
+z (height)
+│
+│    y (width)
+│   ╱
+│  ╱
+│ ╱
+└──────── x (depth, toward door)
+```
 
 ### 1. Sorting Strategy
-```
-VIP items first → largest volume → heaviest weight
-```
-VIP items land in innermost positions, guaranteeing they are loaded last (inside-out), which is how real forklifts operate.
 
-### 2. Placement Loop
-For each item, candidate anchor points are tried in order: smallest X (deepest in container) → smallest Z (lowest) → smallest Y. The first position that passes all constraints is accepted; three new anchor points are generated.
+Items are sorted by a three-key priority before packing begins:
+
+$$\text{sort key} = \bigl(\neg\,\text{is\_vip},\ -V_i,\ -m_i\bigr)$$
+
+where $V_i = L_i \times W_i \times H_i$ is item volume and $m_i$ is weight. VIP items always land deepest (innermost), matching real inside-out loading order.
+
+### 2. Anchor-Point Placement
+
+After placing item $k$ at position $(x_k, y_k, z_k)$, three new candidate anchors are generated:
+
+$$A_{k+1} = \bigl\{(x_k + L_k,\ y_k,\ z_k),\ (x_k,\ y_k + W_k,\ z_k),\ (x_k,\ y_k,\ z_k + H_k)\bigr\}$$
+
+Anchors are tried in lexicographic order $(x, z, y)$ — deepest first, then lowest, then leftmost — which produces dense, floor-hugging arrangements.
 
 ### 3. Constraint Stack
-```
-① Boundary check        — item must fit within container dimensions
-② Collision check       — no overlap with already-placed items
-③ Stacking check        — if z > 0, must have a stackable support beneath
-                          upper item density ≤ support density × 1.05
-④ Forklift aisle check  — corridor from item to door must be clear
-                          aisle width = max(item width, forklift width)
-                          aisle height = forklift body height
-```
 
-The forklift constraint (`isAisleClear`) scans all placed items between the candidate position and the container door, blocking placement if any item falls within the forklift's path envelope. This is the key differentiator from standard bin-packing implementations.
+Every candidate position $(x, y, z)$ must pass four checks in order:
+
+**① Boundary**
+
+$$x + L_i \leq L_c \quad \land \quad y + W_i \leq W_c \quad \land \quad z + H_i \leq H_c$$
+
+**② Collision (AABB)**
+
+For every placed item $p$, no axis-aligned bounding box overlap:
+
+$$x + L_i \leq p.x \;\lor\; p.x + p.L \leq x \;\lor\; y + W_i \leq p.y \;\lor\; \cdots$$
+
+**③ Stacking Support**
+
+If $z > 0$, the item must rest on at least one stackable support. Three sub-conditions must all hold:
+
+- All supports have `stackable = True`
+- Density constraint (heavy-below rule with 5% tolerance):
+
+$$\rho_{\text{upper}} \leq \rho_{\text{support}} \times 1.05$$
+
+- Support coverage ≥ 90% of the item's base area (prevents excessive overhang):
+
+$$\frac{\text{Area}\!\left(\bigcup_s \text{proj}(s) \cap \text{base}(i)\right)}{L_i \times W_i} \geq 0.9$$
+
+The union area is computed exactly via a sweep-line algorithm in $O(N^2)$.
+
+**④ Forklift Aisle Clearance**
+
+The corridor between the candidate item and the container door must be free of obstructions within the forklift's operating envelope. Fork-reach tolerance $r = 0.9 \times l_{\text{fork}}$ allows the forks to partially slide under the next item:
+
+$$\forall\, p \in \text{placed} : \quad p.x \geq x + L_i + r \implies \neg\bigl(Y_{\text{overlap}}(p) \land p.z < H_{\text{forklift}}\bigr)$$
+
+where $Y_{\text{overlap}}$ checks if $p$ falls within the aisle width $\max(W_i, W_{\text{forklift}})$ centered on the item's Y midpoint.
 
 ---
 
@@ -118,7 +163,7 @@ The forklift constraint (`isAisleClear`) scans all placed items between the cand
 ### 1. Clone
 
 ```bash
-git clone https://github.com/wutesta0101-hu/container-packing.git
+git clone https://github.com/wutesta0101-hue/container-packing.git
 cd container-packing
 ```
 
@@ -282,7 +327,5 @@ B001,vip,800,600,800,200,1,false
 | `weight` | float (kg) | Used for stacking density check |
 | `quantity` | integer | Number of identical units |
 | `stackable` | boolean | Whether other items can be placed on top |
-
----
 
 
