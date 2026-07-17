@@ -1,4 +1,4 @@
-> ⚠️ This is a prototype developed by Eshcol Studio.
+> ⚠️ This is a prototype developed Teata Wu
 > Shared with client permission for portfolio purposes only.
 > Not licensed for reuse or redistribution.
 
