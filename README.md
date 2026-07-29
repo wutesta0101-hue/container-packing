@@ -1,9 +1,3 @@
-> ⚠️ This is a prototype developed Teata Wu
-> Shared with client permission for portfolio purposes only.
-> Not licensed for reuse or redistribution.
-
----
-
 # 3D Container Packing System
 
 > — 3D Bin-Packing with forklift aisle constraints, real-time visualization, and full-stack Docker deployment.
