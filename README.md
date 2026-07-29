@@ -1,6 +1,6 @@
 # 3D Container Packing System
 
-*[中文版本](README.zh-TW.md)*
+*[中文版本](README(zh).md)*
 
 > 3D bin-packing with forklift aisle constraints, real-time visualization, and full-stack Docker deployment.
 
