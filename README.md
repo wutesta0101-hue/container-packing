@@ -285,7 +285,7 @@ container-packing/
  
 **[Container Arrival Tracker](https://github.com/wutesta0101-hue/container-arrival-tracker)** — zero-infrastructure arrival tracking for warehouse, customs, and procurement teams.
  
-**[EMR Picking Sequence Optimizer](https://github.com/wutesta0101-hue/emr-scheduling)** — the scheduling counterpart: this project decides *where cargo goes*, that one decides *what order to reach it in*. Same forklift, same accessibility constraint.
+**[Dense mobile rack Picking Sequence Optimizer](https://github.com/wutesta0101-hue/emr-scheduling)** — Dense mobile rack Picking **3D visualization**.
  
 ---
  
