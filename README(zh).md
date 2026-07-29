@@ -284,9 +284,9 @@ container-packing/
 
 ## 相關專案
 
-**[Container Arrival Tracker](https://github.com/wutesta0101-hue/container-arrival-tracker)** — 零基礎設施的貨櫃到貨追蹤工具，串接倉庫、報關與採購三個部門。
+**[貨櫃追蹤器](https://github.com/wutesta0101-hue/container-arrival-tracker)** — 零基礎設施的貨櫃到貨**追蹤工具**，串接倉庫、報關與採購三個部門。
 
-**[EMR 揀貨序列最佳化](https://github.com/wutesta0101-hue/emr-scheduling)** — 排程面的對應專案：本專案決定**貨物放在哪**，那一個決定**用什麼順序去拿**。同一台堆高機、同一種可及性約束。
+**[電動移動貨架 揀貨序列最佳化](https://github.com/wutesta0101-hue/emr-scheduling)** — 密集式移動貨架的揀貨**3D可視化**。
 
 ---
 
