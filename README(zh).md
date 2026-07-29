@@ -290,4 +290,4 @@ container-packing/
 
 ---
 
-**授權** — MIT
+**授權** — © 2026 Testa Wu。保留所有權利。僅供作品展示用途。
