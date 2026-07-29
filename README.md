@@ -329,5 +329,4 @@ B001,vip,800,600,800,200,1,false
 | `stackable` | boolean | Whether other items can be placed on top |
 
 ## Related
-- [Delivery Tracker](https://github.com/wutesta0101-hue/delivery-tracker) — Gig delivery route recorder + analytics
 - [Container Arrival Tracker](https://github.com/wutesta0101-hue/container-arrival-tracker) — Zero-infrastructure warehouse arrival tracking
