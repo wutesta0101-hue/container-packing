@@ -32,7 +32,7 @@
 
 ## 系統架構
 
-![系統架構圖](docs/architecture.png)
+![系統架構圖](docs/architecture(zh).png)
 
 前端是共用單一 Zustand store 的三面板 React 應用。所有裝箱邏輯集中在 `algorithm/packing.py`，是不依賴任何框架的純函式，可獨立單元測試。四項實體約束在每個候選位置上依序評估。
 
