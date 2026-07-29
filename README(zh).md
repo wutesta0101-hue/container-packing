@@ -2,7 +2,7 @@
 
 *[English](README.md)*
 
-> 帶堆高機通道約束的三維裝箱最佳化，即時視覺化，全端 Docker 部署。
+> 具堆高機通道約束的三維裝箱最佳化，即時視覺化，全端 Docker 部署。
 
 **線上展示 → [wutesta0101-hue.github.io/container-packing](https://wutesta0101-hue.github.io/container-packing)**
 
