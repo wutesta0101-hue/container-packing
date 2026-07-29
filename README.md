@@ -289,4 +289,4 @@ container-packing/
  
 ---
  
-**License** — MIT
+**License** — © 2026 Testa Wu. All rights reserved. Portfolio use only.
