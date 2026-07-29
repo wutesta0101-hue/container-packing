@@ -32,7 +32,7 @@
 
 ## 系統架構
 
-![系統架構圖](docs/architecture(zh).png)
+![系統架構圖](docs/architecture.png)
 
 前端是共用單一 Zustand store 的三面板 React 應用。所有裝箱邏輯集中在 `algorithm/packing.py`，是不依賴任何框架的純函式，可獨立單元測試。四項實體約束在每個候選位置上依序評估。
 
@@ -60,7 +60,7 @@ z（高）
 
 裝箱前先以三層鍵值排序：
 
-$$\text{key}(i) = \big(\lnot\,\text{is\_vip}_i,\; -V_i,\; -m_i\big), \qquad V_i = L_i W_i H_i$$
+$$\text{key}(i) = \big(\lnot\,\mathrm{VIP}_i,\; -V_i,\; -m_i\big), \qquad V_i = L_i W_i H_i$$
 
 VIP 貨物永遠落在最深處，對應實際的由內到外裝載順序。
 
