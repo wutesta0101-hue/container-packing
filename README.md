@@ -12,7 +12,7 @@
  
 ## What It Does
  
-Upload cargo data — manual entry or CSV — and the system computes an optimal 3D loading plan for a shipping container, respecting the physical constraints most bin-packing demos ignore:
+Upload cargo data — manual entry or CSV — and the system computes an optimal 3D loading plan for a shipping container, enforcing the physical constraints that determine whether a plan is actually executable on the floor:
  
 - **Forklift aisle clearance** — every item must be reachable by a forklift entering from the door. Enforced geometrically, not as a heuristic.
 - **Stacking rules** — items stack only on stackable cargo, and only when the upper item's density is at most 105% of its support.
