@@ -38,6 +38,18 @@
 
 ---
 
+## 部署拓樸
+
+![部署拓樸圖](docs/deployment(zh).png)
+
+四個容器，對外只發布單一連接埠。Nginx 提供建置後的前端靜態檔，並將 `/api/*` 反向代理至後端 —— 對瀏覽器而言只有一個來源，因此正式環境不需要任何 CORS 設定。
+
+對外只開放 `:80` 與 `:8080`。API（`:9000`）與資料庫（`:5432`）的直接存取僅存在於開發專用的 `docker-compose.override.yml`，客戶端部署兩者皆無。
+
+應用資料存放於 `postgres_data` named volume，位於所有容器之外。這就是為什麼 `docker compose down` 會保留資料，而 `down -v` 會將其清除。
+
+---
+
 ## 核心演算法
 
 裝箱引擎實作三維 **Bottom-Left-Back（BLB）錨點法**。每件貨物放置在第一個通過四項實體約束的可行錨點。
@@ -127,11 +139,13 @@ $$\forall\, p \in \text{placed}: \quad p.x \ge x + L_i + r \implies \lnot\big(Y_
 git clone https://github.com/wutesta0101-hue/container-packing.git
 cd container-packing
 
-cp .env.docker.example .env.docker
+cp .env.docker.example .env
 # 預設值可直接使用，僅在需要更改資料庫帳密時編輯
 
 docker compose up -d
 ```
+
+> 目標檔名必須是 `.env`。Docker Compose 只會自動讀取 `.env`，其他檔名需要加上 `--env-file`；而忘記加參數時，Compose 不會報錯，只會靜靜套用內建預設值。
 
 會啟動四個服務：
 
@@ -141,6 +155,8 @@ docker compose up -d
 | 後端 | 內部 | FastAPI（port 9000） |
 | PostgreSQL | 內部 | 資料庫 |
 | pgAdmin | `http://localhost:8080` | 資料庫管理介面 |
+
+在 pgAdmin 建立伺服器連線時，**Host 欄位要填 `postgres`**，不是 `localhost` —— pgAdmin 跑在容器內，對它而言 `localhost` 指向自己，而 Docker 內建 DNS 會把服務名稱解析為主機名稱。
 
 驗證：
 
@@ -168,18 +184,19 @@ docker compose down -v       # 停止並清除資料庫
 
 ```json
 {
-  "container": "20ft",
-  "forklift": "linde_e25",
+  "container_type": "40",
+  "forklift_type": "E35SH",
   "cargo": [
     {
       "id": "A001",
-      "type": "standard",
+      "type": "heavy",
       "L": 1200,
-      "W": 800,
-      "H": 1000,
-      "weight": 500,
-      "quantity": 3,
-      "stackable": true
+      "W": 1000,
+      "H": 800,
+      "weight": 800,
+      "quantity": 4,
+      "stackable": true,
+      "rotatable": true
     }
   ]
 }
@@ -187,19 +204,32 @@ docker compose down -v       # 停止並清除資料庫
 
 ```json
 {
-  "task_id": "abc123",
+  "task_id": "task_a3f9c2e81b04",
   "packed": [
-    { "id": "A001-1", "x": 0, "y": 0, "z": 0, "L": 1200, "W": 800, "H": 1000 }
+    {
+      "id": "A001-1",
+      "base_id": "A001",
+      "type": "heavy",
+      "L": 1200, "W": 1000, "H": 800,
+      "weight": 800.0,
+      "stackable": true,
+      "x": 0, "y": 0, "z": 0,
+      "is_packed": true,
+      "rotated": false
+    }
   ],
   "unpacked": [],
-  "utilization": 0.87,
-  "cog": { "x": 4200, "y": 1150, "z": 620 }
+  "utilization": 8.51
 }
 ```
 
+`utilization` 為 0–100 的百分比。`unpacked` 內的項目帶有 `is_packed: false` 與 `null` 座標。`quantity: 4` 的批次會展開為四個獨立單件 —— `A001-1` 至 `A001-4` —— `base_id` 保留原始批次識別碼。
+
+驗證錯誤回傳 **422**，`detail` 陣列會標明出錯欄位。空的貨物清單、未知的貨櫃或堆高機代碼、非正數尺寸、ID 含空白，都會在處理函式執行前被擋下。
+
 ### `GET /api/v1/results/{task_id}`
 
-取回先前計算的結果。
+取回先前計算的結果。回傳相同結構並額外包含 `created_at`、`container_type` 與 `forklift_type`。查無此 ID 回傳 404。
 
 ---
 
@@ -207,38 +237,58 @@ docker compose down -v       # 停止並清除資料庫
 
 ### 貨櫃規格
 
-| 代碼 | 尺寸 長 × 寬 × 高（mm） |
-|---|---|
-| `20ft` | 5,900 × 2,350 × 2,390 |
-| `40ft` | 12,030 × 2,350 × 2,390 |
-| `40ft_hc` | 12,030 × 2,350 × 2,695 |
+| 代碼 | 尺寸 長 × 寬 × 高（mm） | 最大載重（kg） |
+|---|---|---|
+| `20` | 5,898 × 2,352 × 2,393 | 28,000 |
+| `40` | 12,032 × 2,352 × 2,393 | 26,000 |
+| `40HQ` | 12,032 × 2,352 × 2,698 | 26,000 |
 
 ### 堆高機規格
 
-依 Linde E 系列技術規格。選定的機型決定所需的通道寬度。
+依 Linde E 系列技術規格。選定的機型決定所需的通道寬度，因此會直接改變計算結果。
 
-| 代碼 | 通道寬（mm） | 車身高（mm） |
+| 代碼 | 型號 | 車身寬（mm） | 車身高（mm） | 額定載重（kg） |
+|---|---|---|---|---|
+| `E25` | Linde E25 | 1,175 | 2,200 | 2,500 |
+| `E25S` | Linde E25 S | 1,175 | 2,200 | 2,500 |
+| `E25SH` | Linde E25 SH | 1,228 | 2,200 | 2,500 |
+| `E30S` | Linde E30 S | 1,228 | 2,200 | 3,000 |
+| `E30SH` | Linde E30 SH | 1,228 | 2,200 | 3,000 |
+| `E35SH` | Linde E35 SH | 1,325 | 2,200 | 3,500 |
+
+所有型號的貨叉長度均為 1,150 mm，淨空判定時套用 0.9 的伸入係數。
+
+### 貨物類型
+
+| 代碼 | 標示 | 行為 |
 |---|---|---|
-| `linde_e25` | 1,100 | 2,150 |
-| `linde_e30` | 1,150 | 2,150 |
-| `linde_e35` | 1,200 | 2,200 |
+| `normal` | 一般 | 預設 |
+| `heavy` | 重物 | 顏色區隔；密度規則與其他貨物相同 |
+| `fragile` | 易碎品 | 通常宣告為 `stackable: false` |
+| `vip` | VIP | 優先排序，放置於最內側 |
 
 ### CSV 匯入格式
 
+請存成 UTF-8 —— Excel 預設的 CSV 匯出可能使用地區編碼，導致中文亂碼。
+
 ```csv
-id,type,L,W,H,weight,quantity,stackable
-A001,standard,1200,800,1000,500,3,true
-B001,vip,800,600,800,200,1,false
+id,type,length,width,height,weight,quantity,stackable,rotatable
+A001,heavy,1200,1000,800,800,4,true,true
+B001,fragile,1000,800,600,150,5,false,true
+V001,vip,1400,1100,1000,600,2,true,true
 ```
 
 | 欄位 | 型別 | 說明 |
 |---|---|---|
-| `id` | string | 貨物唯一識別碼 |
-| `type` | `standard` / `vip` | VIP 優先裝入最內側 |
-| `L`, `W`, `H` | integer（mm） | 尺寸 |
-| `weight` | float（kg） | 用於堆疊密度檢查 |
-| `quantity` | integer | 相同貨物件數 |
+| `id` | string | 批次識別碼，不可含空白 |
+| `type` | enum | `normal` / `heavy` / `fragile` / `vip` |
+| `length`、`width`、`height` | integer（mm） | 尺寸 |
+| `weight` | float（kg） | 單件重量，用於堆疊密度檢查 |
+| `quantity` | integer | 此批次的相同件數 |
 | `stackable` | boolean | 是否允許其他貨物堆疊其上 |
+| `rotatable` | boolean | 是否允許繞垂直軸旋轉 90° |
+
+`stackable` 與 `rotatable` 未填時預設為 `true`，只有明確寫 `false` 才會停用。
 
 ---
 
