@@ -298,36 +298,68 @@ Missing `stackable` or `rotatable` values default to `true`; only an explicit `f
 container-packing/
 ├── backend/
 │   ├── algorithm/
-│   │   └── packing.py           ← 3D BPP core, pure functions, unit-testable
-│   ├── db/
-│   │   └── repository.py        ← SQLAlchemy ORM, Tasks + PackedItems
-│   ├── routes/
-│   │   └── pack.py              ← FastAPI route handlers
-│   ├── schemas/                 ← Pydantic request / response models
-│   ├── services/
-│   │   └── packing_service.py   ← Business logic, orchestration
+│   │   └── packing.py            ← 3D BPP core, pure functions, unit-testable
 │   ├── core/
-│   │   └── config.py            ← .env, CORS settings
-│   ├── tests/                   ← Unit tests for the algorithm
+│   │   └── config.py             ← .env, CORS settings
+│   ├── db/
+│   │   ├── database.py           ← engine, session, declarative base
+│   │   ├── models.py             ← Task, PackedItem
+│   │   ├── repository.py         ← SQLAlchemy CRUD
+│   │   └── init_db.py            ← table creation
+│   ├── routes/
+│   │   └── pack.py               ← FastAPI route handlers
+│   ├── schemas/
+│   │   ├── cargo.py              ← CargoInput, PackedItem
+│   │   ├── container.py          ← container and forklift spec tables
+│   │   └── pack.py               ← request / response models
+│   ├── services/
+│   │   └── packing_service.py    ← business logic, orchestration
+│   ├── tests/
+│   │   ├── fixtures/golden.json  ← golden fixtures
+│   │   ├── test_algorithm.py
+│   │   ├── test_api.py
+│   │   ├── test_repository.py
+│   │   ├── test_schemas.py
+│   │   └── test_services.py
+│   ├── verify_db.py              ← PostgreSQL connectivity check
 │   ├── main.py
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/
+│   ├── public/                   ← favicon, icon sprite
 │   ├── src/
+│   │   ├── algorithm/
+│   │   │   └── packingHeuristic.js  ← JS port of the packing algorithm
+│   │   ├── api/
+│   │   │   └── apiClient.js      ← Axios, all backend calls
 │   │   ├── components/
-│   │   │   ├── LeftPanel/       ← Input forms, CSV upload, cargo list
-│   │   │   ├── CenterCanvas/    ← Three.js 3D scene
-│   │   │   └── RightPanel/      ← Dashboard cards
+│   │   │   ├── LeftPanel.jsx     ← input column
+│   │   │   ├── CenterCanvas.jsx  ← 3D column
+│   │   │   ├── RightPanel.jsx    ← dashboard column
+│   │   │   ├── input/            ← ContainerSelector, CargoForm, CsvDropzone,
+│   │   │   │                        CargoList, SummaryPanel
+│   │   │   ├── scene/            ← Container3D, ViewControls, PlaybackBar
+│   │   │   └── dashboard/        ← Utilization, Weight, Direction, Legend cards
+│   │   ├── constants/
+│   │   │   └── index.js          ← container / forklift / cargo-type tables
 │   │   ├── store/
-│   │   │   └── useCargoStore.js ← Zustand global state
-│   │   └── api/
-│   │       └── apiClient.js     ← Axios, all backend calls
+│   │   │   └── useCargoStore.js  ← Zustand global state
+│   │   ├── App.jsx
+│   │   └── main.jsx
 │   ├── Dockerfile
-│   └── nginx.conf
+│   ├── nginx.conf
+│   ├── vite.config.js
+│   └── package.json
 ├── docs/
+│   ├── architecture.png          ← system architecture (EN)
+│   ├── architecture(zh).png      ← system architecture (ZH)
+│   ├── deployment.png            ← deployment topology (EN)
+│   ├── deployment(zh).png        ← deployment topology (ZH)
+│   ├── hero.png                  ← X-ray mode screenshot
+│   └── solid-view.png            ← solid mode screenshot
 ├── docker-compose.yml
-├── docker-compose.override.yml  ← Dev overrides: exposed ports, hot reload
-└── .env.docker.example
+├── .env.docker.example
+└── DEVELOPMENT.md                ← local development setup
 ```
 
 ---
