@@ -298,36 +298,68 @@ V001,vip,1400,1100,1000,600,2,true,true
 container-packing/
 ├── backend/
 │   ├── algorithm/
-│   │   └── packing.py           ← 三維裝箱核心，純函式、可單元測試
-│   ├── db/
-│   │   └── repository.py        ← SQLAlchemy ORM，Tasks + PackedItems
-│   ├── routes/
-│   │   └── pack.py              ← FastAPI 路由處理
-│   ├── schemas/                 ← Pydantic 請求 / 回應模型
-│   ├── services/
-│   │   └── packing_service.py   ← 業務邏輯、流程編排
+│   │   └── packing.py            ← 三維裝箱核心，純函式、可單元測試
 │   ├── core/
-│   │   └── config.py            ← .env、CORS 設定
-│   ├── tests/                   ← 演算法單元測試
+│   │   └── config.py             ← .env、CORS 設定
+│   ├── db/
+│   │   ├── database.py           ← engine、session、declarative base
+│   │   ├── models.py             ← Task、PackedItem
+│   │   ├── repository.py         ← SQLAlchemy CRUD
+│   │   └── init_db.py            ← 建表
+│   ├── routes/
+│   │   └── pack.py               ← FastAPI 路由處理
+│   ├── schemas/
+│   │   ├── cargo.py              ← CargoInput、PackedItem
+│   │   ├── container.py          ← 貨櫃與堆高機規格表
+│   │   └── pack.py               ← 請求 / 回應模型
+│   ├── services/
+│   │   └── packing_service.py    ← 業務邏輯、流程編排
+│   ├── tests/
+│   │   ├── fixtures/golden.json  ← 黃金測資
+│   │   ├── test_algorithm.py
+│   │   ├── test_api.py
+│   │   ├── test_repository.py
+│   │   ├── test_schemas.py
+│   │   └── test_services.py
+│   ├── verify_db.py              ← PostgreSQL 連線檢查
 │   ├── main.py
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/
+│   ├── public/                   ← favicon、圖示 sprite
 │   ├── src/
+│   │   ├── algorithm/
+│   │   │   └── packingHeuristic.js  ← 裝箱演算法 JS 版
+│   │   ├── api/
+│   │   │   └── apiClient.js      ← Axios，所有後端呼叫
 │   │   ├── components/
-│   │   │   ├── LeftPanel/       ← 輸入表單、CSV 上傳、貨物清單
-│   │   │   ├── CenterCanvas/    ← Three.js 三維場景
-│   │   │   └── RightPanel/      ← 儀表板卡片
+│   │   │   ├── LeftPanel.jsx     ← 輸入欄
+│   │   │   ├── CenterCanvas.jsx  ← 三維欄
+│   │   │   ├── RightPanel.jsx    ← 儀表板欄
+│   │   │   ├── input/            ← ContainerSelector、CargoForm、CsvDropzone、
+│   │   │   │                        CargoList、SummaryPanel
+│   │   │   ├── scene/            ← Container3D、ViewControls、PlaybackBar
+│   │   │   └── dashboard/        ← 利用率、重量、方向、圖例卡片
+│   │   ├── constants/
+│   │   │   └── index.js          ← 貨櫃 / 堆高機 / 貨物類型對照表
 │   │   ├── store/
-│   │   │   └── useCargoStore.js ← Zustand 全域狀態
-│   │   └── api/
-│   │       └── apiClient.js     ← Axios，所有後端呼叫
+│   │   │   └── useCargoStore.js  ← Zustand 全域狀態
+│   │   ├── App.jsx
+│   │   └── main.jsx
 │   ├── Dockerfile
-│   └── nginx.conf
+│   ├── nginx.conf
+│   ├── vite.config.js
+│   └── package.json
 ├── docs/
+│   ├── architecture.png          ← 系統架構圖（英）
+│   ├── architecture(zh).png      ← 系統架構圖（中）
+│   ├── deployment.png            ← 部署拓樸圖（英）
+│   ├── deployment(zh).png        ← 部署拓樸圖（中）
+│   ├── hero.png                  ← X 光模式截圖
+│   └── solid-view.png            ← 實體模式截圖
 ├── docker-compose.yml
-├── docker-compose.override.yml  ← 開發覆寫：對外連接埠、熱重載
-└── .env.docker.example
+├── .env.docker.example
+└── DEVELOPMENT.md                ← 本機開發環境設定
 ```
 
 ---
